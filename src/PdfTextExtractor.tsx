@@ -10,7 +10,7 @@ const processPdfText = (text: string): string => {
   // Elimina el encabezado del boletín
   text = text.replace(/BOLETÍN OFICIAL DEL REGISTRO MERCANTIL.*?https:\/\/www\.boe\.es\s*/gi, '');
   // Elimina "SECCIÓN PRIMERA  Empresarios  Actos inscritos  {{provincia}}"
-  text = text.replace(/SECCIÓN PRIMERA\s+Empresarios\s+Actos inscritos\s+[\w\sáéíóúÁÉÍÓÚ,.-]*/gi, '');
+  text = text.replace(/SECCIÓN PRIMERA\s+Empresarios\s+Actos inscritos\s+[^\n]+/gi, '');
   return text.trim();
 };
 
