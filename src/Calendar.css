@@ -8,9 +8,9 @@
     --dot-green: #4caf50;
     --dot-red: #f44336;
     --shadow-color: rgba(0, 0, 0, 0.1);
-    --close-bg: #fff;
+    --close-bg: #f51c1c;
     --close-border: #ddd;
-    --close-hover-bg: #f7f7f7;
+    --close-hover-bg: #c21313;
 }
 
 .calendar-container {
@@ -199,12 +199,13 @@
 }
 
 .close-button {
+    text-align: center;
     background: var(--close-bg);
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.4rem;
+    width: 3em;
+    height: 3em;
+    font-size: 2rem;
     font-weight: bold;
     color: var(--text-color);
     cursor: pointer;
