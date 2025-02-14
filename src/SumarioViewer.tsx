@@ -1,5 +1,5 @@
 import React from 'react';
-
+import 'SumarioViewer.css';
 interface SumarioViewerProps {
   sumario: any;
 }
