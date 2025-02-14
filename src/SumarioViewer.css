@@ -1,0 +1,118 @@
+.sumario-viewer {
+    font-family: Arial, sans-serif;
+    color: #333;
+    padding: 1rem;
+  }
+  
+  .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
+  }
+  
+  .popup-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+  
+  .status {
+    font-size: 0.9rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .status-code {
+    font-weight: bold;
+    color: var(--dot-green);
+  }
+  
+  .status-text {
+    color: #555;
+  }
+  
+  .metadatos {
+    margin-bottom: 1rem;
+  }
+  
+  .metadatos h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+  }
+  
+  .metadatos p {
+    margin: 0.3rem 0;
+  }
+  
+  .diario {
+    margin-top: 1rem;
+  }
+  
+  .diario h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.3rem;
+  }
+  
+  .diario-item {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+  }
+  
+  .diario-item h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .sumario-diario {
+    margin-bottom: 1rem;
+  }
+  
+  .sumario-diario p {
+    margin: 0.3rem 0;
+  }
+  
+  .secciones {
+    margin-bottom: 1rem;
+  }
+  
+  .seccion {
+    margin-bottom: 0.8rem;
+  }
+  
+  .seccion h5 {
+    margin: 0 0 0.3rem;
+    font-size: 1rem;
+    color: #555;
+  }
+  
+  .items {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  
+  .item {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
+  
+  .item p {
+    margin: 0.2rem 0;
+  }
+  
+  .item a {
+    color: var(--secondary-color);
+    text-decoration: none;
+  }
+  
+  .item a:hover {
+    text-decoration: underline;
+  }
+  
