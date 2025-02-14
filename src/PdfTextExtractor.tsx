@@ -13,6 +13,7 @@ const processPdfText = (text: string): string => {
   text = text.replace(/SECCIÓN PRIMERA\s+Empresarios\s+Actos inscritos\s+[^\n]+/gi, '');
   // Generar saltos de línea
   text = text.replace(/\s{3,}/g, '\n');
+  text = text.replace(/\s{2,}/g, '\n');
   return text.trim();
 };
 
