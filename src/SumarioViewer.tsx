@@ -7,81 +7,46 @@ interface SumarioViewerProps {
 }
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
-  const { status, data } = sumario;
-  const metadatos = data?.sumario?.metadatos;
-  const diario = data?.sumario?.diario;
+  const diario = sumario?.data?.sumario?.diario;
+  // Filtrar únicamente secciones con código "A"
+  const seccionA = Array.isArray(diario)
+    ? diario.map((d: any) => {
+        if (d.seccion && Array.isArray(d.seccion)) {
+          return d.seccion.find((s: any) => s.codigo === "A");
+        }
+        return null;
+      }).filter((s: any) => s !== null)
+    : [];
+
+  if (seccionA.length === 0) {
+    return <div>No se encontró la Sección A.</div>;
+  }
+
+  const section = seccionA[0];
   return (
     <div className="sumario-viewer">
       <div className="popup-header">
-        <h2>Sumario BORME</h2>
-        {status && (
-          <div className="status">
-            <span className="status-code">{status.code}</span>
-            <span className="status-text">{status.text}</span>
-          </div>
+        <h2>Sección A – SECCIÓN PRIMERA. Empresarios. Actos inscritos</h2>
+      </div>
+      <div className="seccion">
+        <h5>Sección {section.codigo} – {section.nombre}</h5>
+        {section.item && Array.isArray(section.item) && (
+          <ul className="items">
+            {section.item.map((item: any, iIdx: number) => (
+              <li key={iIdx} className="item">
+                <p><strong>Identificador:</strong> {item.identificador}</p>
+                <p><strong>Título:</strong> {item.titulo}</p>
+                {item.url_pdf && (
+                  <div>
+                    <strong>Texto PDF:</strong>
+                    <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-      {metadatos && (
-        <div className="metadatos">
-          <h3>Metadatos</h3>
-          <p><strong>Publicación:</strong> {metadatos.publicacion}</p>
-          <p><strong>Fecha de Publicación:</strong> {metadatos.fecha_publicacion}</p>
-        </div>
-      )}
-      {diario && (
-        <div className="diario">
-          <h3>Diario</h3>
-          {Array.isArray(diario) ? (
-            diario.map((d: any, idx: number) => (
-              <div key={idx} className="diario-item">
-                <h4>Diario Número: {d.numero}</h4>
-                {d.sumario_diario && (
-                  <div className="sumario-diario">
-                    <p><strong>Identificador:</strong> {d.sumario_diario.identificador}</p>
-                    {d.sumario_diario.url_pdf && (
-                      <div>
-                        <strong>Texto PDF:</strong>
-                        <PdfTextExtractor pdfUrl={d.sumario_diario.url_pdf.texto} />
-                      </div>
-                    )}
-                  </div>
-                )}
-                {d.seccion && (
-                  <div className="secciones">
-                    {Array.isArray(d.seccion)
-                      ? d.seccion.map((s: any, sIdx: number) => (
-                          <div key={sIdx} className="seccion">
-                            <h5>Sección {s.codigo} – {s.nombre}</h5>
-                            {s.item && (
-                              <ul className="items">
-                                {Array.isArray(s.item)
-                                  ? s.item.map((item: any, iIdx: number) => (
-                                      <li key={iIdx} className="item">
-                                        <p><strong>Identificador:</strong> {item.identificador}</p>
-                                        <p><strong>Título:</strong> {item.titulo}</p>
-                                        {item.url_pdf && (
-                                          <div>
-                                            <strong>Texto PDF:</strong>
-                                            <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
-                                          </div>
-                                        )}
-                                      </li>
-                                    ))
-                                  : null}
-                              </ul>
-                            )}
-                          </div>
-                        ))
-                      : null}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div>No se encontraron datos en el diario.</div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
