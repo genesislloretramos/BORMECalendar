@@ -6,6 +6,11 @@ interface PdfTextExtractorProps {
   pdfUrl: string;
 }
 
+const processPdfText = (text: string): string => {
+  const headerRegex = /BOLETÍN OFICIAL DEL REGISTRO MERCANTIL.*?https:\/\/www\.boe\.es\s*/gi;
+  return text.replace(headerRegex, '').trim();
+};
+
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   const [text, setText] = useState<string>('Cargando texto...');
   useEffect(() => {
@@ -21,7 +26,7 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
           const page = await pdf.getPage(pageNum);
           const content = await page.getTextContent();
           const pageText = content.items.map((item: any) => item.str).join(' ');
-          fullText += pageText + '\n';
+          fullText += processPdfText(pageText) + '\n';
         }
         setText(fullText);
       } catch (error: any) {

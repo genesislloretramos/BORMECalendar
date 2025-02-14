@@ -1,46 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './SumarioViewer.css';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+import PdfTextExtractor from './PdfTextExtractor';
 
 interface SumarioViewerProps {
   sumario: any;
 }
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
-  const [pdfText, setPdfText] = useState<string>('');
-  const [loadingText, setLoadingText] = useState<boolean>(false);
-
-  const handleExtractPdfText = async (pdfUrl: string) => {
-    setLoadingText(true);
-    const proxyUrl = pdfUrl.replace('https://www.boe.es/', '/pdf-proxy/');
-    try {
-      const response = await fetch(proxyUrl);
-      if (!response.ok) {
-        alert(`Error al obtener PDF: ${response.status}`);
-        setLoadingText(false);
-        return;
-      }
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const pdf = await getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      // Regex para eliminar la cabecera del PDF
-      const headerRegex = /BOLETÍN OFICIAL DEL REGISTRO MERCANTIL\s+Núm\.\s+\d+\s+Viernes\s+\d+\s+de\s+\w+\s+\d+\s+Pág\.\s+\d+\s+cve:\s+.*?(Verificable en https:\/\/www\.boe\.es\s*(SECCIÓN PRIMERA\s+Empresarios\s+Actos inscritos\s+ALBACETE\s*)?)/gi;
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textItems = await page.getTextContent();
-        const pageText = textItems.items.map((item: any) => item.str).join(' ');
-        const cleanedPageText = pageText.replace(headerRegex, '').trim();
-        fullText += cleanedPageText + '\n';
-      }
-      setPdfText(fullText);
-    } catch (error: any) {
-      alert(`Error: ${error}`);
-    }
-    setLoadingText(false);
-  };
-
   const { status, data } = sumario;
   const metadatos = data?.sumario?.metadatos;
   const diario = data?.sumario?.diario;
@@ -75,9 +41,7 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                     {d.sumario_diario.url_pdf && (
                       <div>
                         <strong>Texto PDF:</strong>
-                        <button onClick={() => handleExtractPdfText(d.sumario_diario.url_pdf.texto)}>
-                          {loadingText ? 'Cargando...' : 'Ver Texto'}
-                        </button>
+                        <PdfTextExtractor pdfUrl={d.sumario_diario.url_pdf.texto} />
                       </div>
                     )}
                   </div>
@@ -98,9 +62,7 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                                         {item.url_pdf && (
                                           <div>
                                             <strong>Texto PDF:</strong>
-                                            <button onClick={() => handleExtractPdfText(item.url_pdf.texto)}>
-                                              {loadingText ? 'Cargando...' : 'Ver Texto'}
-                                            </button>
+                                            <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
                                           </div>
                                         )}
                                       </li>
@@ -118,12 +80,6 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
           ) : (
             <div>No se encontraron datos en el diario.</div>
           )}
-        </div>
-      )}
-      {pdfText && (
-        <div className="pdf-text">
-          <h3>Contenido del PDF</h3>
-          <pre>{pdfText}</pre>
         </div>
       )}
     </div>
