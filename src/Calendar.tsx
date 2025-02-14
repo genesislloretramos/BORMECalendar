@@ -62,7 +62,6 @@ const Calendar: React.FC = () => {
 
   useEffect(() => {
     async function fetchAllDays() {
-      let newDaysData: { [key: number]: DayData } = {};
       for (let day = 1; day <= daysInMonth; day++) {
         const formattedDate = `${displayedDate.getFullYear()}${(displayedDate.getMonth() + 1)
           .toString()
@@ -71,8 +70,9 @@ const Calendar: React.FC = () => {
           const response = await fetch(`/api-borme/sumario/${formattedDate}`, {
             headers: { Accept: 'application/json' }
           });
+          let dayData: DayData;
           if (!response.ok) {
-            newDaysData[day] = { status: "red", error: `Error: ${response.status} ${response.statusText}` };
+            dayData = { status: "red", error: `Error: ${response.status} ${response.statusText}` };
           } else {
             const text = await response.text();
             const trimmed = text.trim();
@@ -82,28 +82,23 @@ const Calendar: React.FC = () => {
               const xmlDoc = parser.parseFromString(trimmed, 'text/xml');
               const errors = xmlDoc.getElementsByTagName('parsererror');
               if (errors.length > 0) {
-                newDaysData[day] = { status: "red", error: `XML Parse Error: ${errors[0].textContent}` };
+                dayData = { status: "red", error: `XML Parse Error: ${errors[0].textContent}` };
               } else {
                 jsonResult = xmlToJson(xmlDoc);
+                dayData = jsonResult?.status?.code === "200" ? { status: "green", data: jsonResult } : { status: "red", data: jsonResult };
               }
             } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
               jsonResult = JSON.parse(trimmed);
+              dayData = jsonResult?.status?.code === "200" ? { status: "green", data: jsonResult } : { status: "red", data: jsonResult };
             } else {
-              newDaysData[day] = { status: "red", error: `Respuesta inesperada: ${trimmed}` };
-            }
-            if (jsonResult) {
-              if (jsonResult?.status?.code === "200") {
-                newDaysData[day] = { status: "green", data: jsonResult };
-              } else {
-                newDaysData[day] = { status: "red", data: jsonResult };
-              }
+              dayData = { status: "red", error: `Respuesta inesperada: ${trimmed}` };
             }
           }
+          setDaysData(prev => ({ ...prev, [day]: dayData }));
         } catch (error: any) {
-          newDaysData[day] = { status: "red", error: error.message };
+          setDaysData(prev => ({ ...prev, [day]: { status: "red", error: error.message } }));
         }
       }
-      setDaysData(newDaysData);
     }
     fetchAllDays();
   }, [displayedDate, daysInMonth]);
