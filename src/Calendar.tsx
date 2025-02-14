@@ -145,12 +145,21 @@ const Calendar: React.FC = () => {
           if (index === 0 && adjustedStartingDay !== 1) {
             style.gridColumnStart = adjustedStartingDay;
           }
+          let cursorStyle = "pointer";
           let dotClass = "default-indicator";
-          if (daysData[day]?.status === "green") {
-            dotClass = "status-green";
-          } else if (daysData[day]?.status === "red") {
-            dotClass = "status-red";
+          if (daysData[day]) {
+            if (daysData[day].status === "green") {
+              dotClass = "status-green";
+              cursorStyle = "pointer";
+            } else if (daysData[day].status === "red") {
+              dotClass = "status-red";
+              cursorStyle = "not-allowed";
+            } else {
+              dotClass = "default-indicator";
+              cursorStyle = "wait";
+            }
           }
+          style.cursor = cursorStyle;
           return (
             <div key={day} className="calendar-cell" style={style} onClick={() => handleDayClick(day)}>
               <span className="day-number">{day}</span>

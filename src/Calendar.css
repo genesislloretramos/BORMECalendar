@@ -78,6 +78,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
   }
   .calendar-cell:hover {
     transform: scale(1.05);
