@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import SumarioViewer from './SumarioViewer';
 
@@ -40,14 +40,18 @@ const xmlToJson = (xmlNode: Node): any => {
   return obj;
 };
 
+interface DayData {
+  status: string;
+  data?: any;
+  error?: string;
+}
+
 const Calendar: React.FC = () => {
   const today = new Date();
   const [displayedDate, setDisplayedDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [daysData, setDaysData] = useState<{ [key: number]: DayData }>({});
   const [popupData, setPopupData] = useState<any>(null);
-  const [popupContent, setPopupContent] = useState<string>('');
   const [popupVisible, setPopupVisible] = useState(false);
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [selectedDayStatus, setSelectedDayStatus] = useState<string | null>(null);
   const year = displayedDate.getFullYear();
   const month = displayedDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -56,81 +60,70 @@ const Calendar: React.FC = () => {
   const adjustedStartingDay = dayOfWeek === 0 ? 7 : dayOfWeek;
   const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+  useEffect(() => {
+    async function fetchAllDays() {
+      let newDaysData: { [key: number]: DayData } = {};
+      for (let day = 1; day <= daysInMonth; day++) {
+        const formattedDate = `${displayedDate.getFullYear()}${(displayedDate.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}${day.toString().padStart(2, '0')}`;
+        try {
+          const response = await fetch(`/api-borme/sumario/${formattedDate}`, {
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) {
+            newDaysData[day] = { status: "red", error: `Error: ${response.status} ${response.statusText}` };
+          } else {
+            const text = await response.text();
+            const trimmed = text.trim();
+            let jsonResult: any;
+            if (trimmed.startsWith('<')) {
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(trimmed, 'text/xml');
+              const errors = xmlDoc.getElementsByTagName('parsererror');
+              if (errors.length > 0) {
+                newDaysData[day] = { status: "red", error: `XML Parse Error: ${errors[0].textContent}` };
+              } else {
+                jsonResult = xmlToJson(xmlDoc);
+              }
+            } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+              jsonResult = JSON.parse(trimmed);
+            } else {
+              newDaysData[day] = { status: "red", error: `Respuesta inesperada: ${trimmed}` };
+            }
+            if (jsonResult) {
+              if (jsonResult?.status?.code === "200") {
+                newDaysData[day] = { status: "green", data: jsonResult };
+              } else {
+                newDaysData[day] = { status: "red", data: jsonResult };
+              }
+            }
+          }
+        } catch (error: any) {
+          newDaysData[day] = { status: "red", error: error.message };
+        }
+      }
+      setDaysData(newDaysData);
+    }
+    fetchAllDays();
+  }, [displayedDate, daysInMonth]);
+
   const prevMonth = () => {
     setDisplayedDate(new Date(year, month - 1, 1));
+    setDaysData({});
+    setPopupVisible(false);
   };
 
   const nextMonth = () => {
     setDisplayedDate(new Date(year, month + 1, 1));
+    setDaysData({});
+    setPopupVisible(false);
   };
 
   const handleDayClick = (day: number) => {
-    setSelectedDay(day);
-    const formattedDate = `${displayedDate.getFullYear()}${(displayedDate.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}${day.toString().padStart(2, '0')}`;
-    fetchSumario(formattedDate);
-  };
-
-  const fetchSumario = async (date: string) => {
-    try {
-      const response = await fetch(`/api-borme/sumario/${date}`, {
-        headers: { Accept: 'application/json' }
-      });
-      if (!response.ok) {
-        setPopupContent(`Error: ${response.status} ${response.statusText}`);
-        setPopupData(null);
-        setSelectedDayStatus("red");
-      } else {
-        const text = await response.text();
-        const trimmed = text.trim();
-        if (trimmed.startsWith('<')) {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(trimmed, 'text/xml');
-          const errors = xmlDoc.getElementsByTagName('parsererror');
-          if (errors.length > 0) {
-            setPopupContent(`XML Parse Error: ${errors[0].textContent}`);
-            setPopupData(null);
-            setSelectedDayStatus("red");
-          } else {
-            const jsonResult = xmlToJson(xmlDoc);
-            if (jsonResult?.status?.code !== "200") {
-              setSelectedDayStatus("red");
-              setPopupData(null);
-            } else {
-              setSelectedDayStatus("green");
-              setPopupData(jsonResult);
-              setPopupContent('');
-              setPopupVisible(true);
-            }
-          }
-        } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-          try {
-            const jsonResult = JSON.parse(trimmed);
-            if (jsonResult?.status?.code !== "200") {
-              setSelectedDayStatus("red");
-              setPopupData(null);
-            } else {
-              setSelectedDayStatus("green");
-              setPopupData(jsonResult);
-              setPopupContent('');
-              setPopupVisible(true);
-            }
-          } catch (jsonError: any) {
-            setPopupContent(`JSON Parse Error: ${jsonError.message}`);
-            setPopupData(null);
-            setSelectedDayStatus("red");
-          }
-        } else {
-          setPopupContent(`Respuesta inesperada: ${trimmed}`);
-          setPopupData(null);
-          setSelectedDayStatus("red");
-        }
-      }
-    } catch (error: any) {
-      setPopupContent(`Error: ${error.message}`);
-      setPopupData(null);
-      setSelectedDayStatus("red");
+    if (daysData[day]?.status === "green") {
+      setPopupData(daysData[day].data);
+      setPopupVisible(true);
     }
   };
 
@@ -153,8 +146,10 @@ const Calendar: React.FC = () => {
             style.gridColumnStart = adjustedStartingDay;
           }
           let dotClass = "default-indicator";
-          if (day === selectedDay) {
-            dotClass = selectedDayStatus === "green" ? "status-green" : selectedDayStatus === "red" ? "status-red" : "default-indicator";
+          if (daysData[day]?.status === "green") {
+            dotClass = "status-green";
+          } else if (daysData[day]?.status === "red") {
+            dotClass = "status-red";
           }
           return (
             <div key={day} className="calendar-cell" style={style} onClick={() => handleDayClick(day)}>
@@ -171,7 +166,7 @@ const Calendar: React.FC = () => {
             {popupData ? (
               <SumarioViewer sumario={popupData} />
             ) : (
-              <div className="error-message">{popupContent}</div>
+              <div className="error-message">Sin datos</div>
             )}
           </div>
         </div>

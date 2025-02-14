@@ -8,7 +8,6 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   const { status, data } = sumario;
   const metadatos = data?.sumario?.metadatos;
   const diario = data?.sumario?.diario;
-
   return (
     <div className="sumario-viewer">
       <div className="popup-header">
