@@ -1,29 +1,30 @@
 import React, { useState } from 'react';
 import './Calendar.css';
 
-// Función para convertir XML a JSON
 const xmlToJson = (xml: string): any => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xml, 'text/xml');
 
   const parseNode = (node: Node): any => {
-    // Si es un nodo de texto, devolver el texto si no es vacío
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.nodeValue?.trim();
       return text ? text : null;
     }
     const obj: any = {};
-    // Procesar atributos (si existen)
-    if (node.attributes && node.attributes.length > 0) {
-      obj['@attributes'] = {};
-      for (let i = 0; i < node.attributes.length; i++) {
-        const attribute = node.attributes.item(i);
-        if (attribute) {
-          obj['@attributes'][attribute.nodeName] = attribute.nodeValue;
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as Element;
+      if (element.attributes && element.attributes.length > 0) {
+        obj['@attributes'] = {};
+        for (let i = 0; i < element.attributes.length; i++) {
+          const attribute = element.attributes.item(i);
+          if (attribute) {
+            obj['@attributes'][attribute.name] = attribute.value;
+          }
         }
       }
     }
-    // Procesar nodos hijos
+
     if (node.childNodes && node.childNodes.length > 0) {
       for (let i = 0; i < node.childNodes.length; i++) {
         const child = node.childNodes[i];
@@ -49,9 +50,7 @@ const xmlToJson = (xml: string): any => {
 
 const Calendar: React.FC = () => {
   const today = new Date();
-  const [displayedDate, setDisplayedDate] = useState(
-    new Date(today.getFullYear(), today.getMonth(), 1)
-  );
+  const [displayedDate, setDisplayedDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const year = displayedDate.getFullYear();
   const month = displayedDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
