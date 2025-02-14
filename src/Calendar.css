@@ -1,0 +1,121 @@
+/* Contenedor principal con animación de aparición */
+.calendar-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: fadeIn 1s ease-out;
+  }
+  
+  /* Encabezado con degradado y tipografía elegante */
+  .calendar-header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #fff;
+    padding: 1.2rem;
+    text-align: center;
+    font-size: 1.8rem;
+    letter-spacing: 0.05rem;
+    margin: 0;
+  }
+  
+  /* Grid del calendario: 7 columnas para los días de la semana */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f5f5f5;
+    gap: 1px;
+  }
+  
+  /* Encabezado de cada día de la semana */
+  .calendar-day-name {
+    background: #e0e0e0;
+    padding: 0.8rem 0;
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* Celdas de cada día con animación al pasar el mouse */
+  .calendar-cell {
+    background: #fff;
+    height: 100px;
+    position: relative;
+    padding: 8px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .calendar-cell.active:hover {
+    transform: scale(1.05);
+    background-color: #f0f8ff;
+  }
+  
+  /* Número del día posicionado en la esquina superior izquierda */
+  .day-number {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  /* Indicador de datos (círculo) con transición y animación */
+  .data-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  /* Si el día tiene datos, se muestra en verde con efecto pulsante */
+  .has-data {
+    background-color: #4caf50;
+    animation: pulse 2s infinite;
+  }
+  
+  /* Si el día no tiene datos, se muestra en rojo */
+  .no-data {
+    background-color: #f44336;
+  }
+  
+  /* Efecto de resplandor al pasar el mouse sobre la celda */
+  .calendar-cell.active:hover .data-indicator {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Animación de aparición del contenedor */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Animación pulsante para el indicador de días con datos */
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    70% {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+  }
+  
