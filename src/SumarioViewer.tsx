@@ -8,7 +8,6 @@ interface SumarioViewerProps {
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   const diario = sumario?.data?.sumario?.diario;
-  // Filtrar únicamente secciones con código "A"
   const seccionA = Array.isArray(diario)
     ? diario.map((d: any) => {
         if (d.seccion && Array.isArray(d.seccion)) {
@@ -23,6 +22,10 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   }
 
   const section = seccionA[0];
+  const filteredItems = Array.isArray(section.item)
+    ? section.item.filter((item: any) => !item.titulo.includes("ÍNDICE ALFABÉTICO DE SOCIEDADES"))
+    : [];
+
   return (
     <div className="sumario-viewer">
       <div className="popup-header">
@@ -30,9 +33,9 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
       </div>
       <div className="seccion">
         <h5>Sección {section.codigo} – {section.nombre}</h5>
-        {section.item && Array.isArray(section.item) && (
+        {filteredItems.length > 0 && (
           <ul className="items">
-            {section.item.map((item: any, iIdx: number) => (
+            {filteredItems.map((item: any, iIdx: number) => (
               <li key={iIdx} className="item">
                 <p><strong>Identificador:</strong> {item.identificador}</p>
                 <p><strong>Título:</strong> {item.titulo}</p>
