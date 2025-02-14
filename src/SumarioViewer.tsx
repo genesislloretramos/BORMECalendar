@@ -1,44 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './SumarioViewer.css';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+import PdfTextExtractor from './PdfTextExtractor';
 
 interface SumarioViewerProps {
   sumario: any;
 }
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
-  const [pdfText, setPdfText] = useState<string>('');
-  const [loadingText, setLoadingText] = useState<boolean>(false);
-
-  const handleExtractPdfText = async (pdfUrl: string) => {
-    setLoadingText(true);
-    // Use proxy if needed, otherwise use the pdfUrl directly
-    const proxyUrl = pdfUrl.replace('https://www.boe.es/', '/pdf-proxy/');
-    try {
-      const response = await fetch(proxyUrl);
-      if (!response.ok) {
-        alert(`Error al obtener PDF: ${response.status}`);
-        setLoadingText(false);
-        return;
-      }
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const pdf = await getDocument({ data: arrayBuffer }).promise;
-      let textContent = '';
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textItems = await page.getTextContent();
-        const pageText = textItems.items.map((item: any) => item.str).join(' ');
-        textContent += pageText + '\n';
-      }
-      setPdfText(textContent);
-    } catch (error: any) {
-      alert(`Error: ${error}`);
-    }
-    setLoadingText(false);
-  };
-
   const { status, data } = sumario;
   const metadatos = data?.sumario?.metadatos;
   const diario = data?.sumario?.diario;
@@ -71,12 +39,10 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                   <div className="sumario-diario">
                     <p><strong>Identificador:</strong> {d.sumario_diario.identificador}</p>
                     {d.sumario_diario.url_pdf && (
-                      <p>
-                        <strong>Texto PDF:</strong>{' '}
-                        <button onClick={() => handleExtractPdfText(d.sumario_diario.url_pdf.texto)}>
-                          {loadingText ? 'Cargando...' : 'Ver Texto'}
-                        </button>
-                      </p>
+                      <div>
+                        <strong>Texto PDF:</strong>
+                        <PdfTextExtractor pdfUrl={d.sumario_diario.url_pdf.texto} />
+                      </div>
                     )}
                   </div>
                 )}
@@ -94,12 +60,10 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                                         <p><strong>Identificador:</strong> {item.identificador}</p>
                                         <p><strong>Título:</strong> {item.titulo}</p>
                                         {item.url_pdf && (
-                                          <p>
-                                            <strong>Texto PDF:</strong>{' '}
-                                            <button onClick={() => handleExtractPdfText(item.url_pdf.texto)}>
-                                              {loadingText ? 'Cargando...' : 'Ver Texto'}
-                                            </button>
-                                          </p>
+                                          <div>
+                                            <strong>Texto PDF:</strong>
+                                            <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
+                                          </div>
                                         )}
                                       </li>
                                     ))
@@ -116,12 +80,6 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
           ) : (
             <div>No se encontraron datos en el diario.</div>
           )}
-        </div>
-      )}
-      {pdfText && (
-        <div className="pdf-text">
-          <h3>Contenido del PDF</h3>
-          <pre>{pdfText}</pre>
         </div>
       )}
     </div>
