@@ -3,7 +3,14 @@ import './Calendar.css';
 
 const xmlToJson = (xml: string): any => {
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xml, 'text/xml');
+  // Limpia el XML para eliminar espacios en blanco adicionales
+  const xmlDoc = parser.parseFromString(xml.trim(), 'text/xml');
+
+  // Verifica si hay un error en el parseo
+  const parserErrors = xmlDoc.getElementsByTagName('parsererror');
+  if (parserErrors.length > 0) {
+    throw new Error(parserErrors[0].textContent || 'Error parsing XML');
+  }
 
   const parseNode = (node: Node): any => {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -88,8 +95,12 @@ const Calendar: React.FC = () => {
         setPopupContent(`Error: ${response.status} ${response.statusText}`);
       } else {
         const xmlText = await response.text();
-        const jsonResult = xmlToJson(xmlText);
-        setPopupContent(JSON.stringify(jsonResult, null, 2));
+        try {
+          const jsonResult = xmlToJson(xmlText);
+          setPopupContent(JSON.stringify(jsonResult, null, 2));
+        } catch (parseError: any) {
+          setPopupContent(`XML Parse Error: ${parseError.message}`);
+        }
       }
     } catch (error: any) {
       setPopupContent(`Error: ${error.message}`);
