@@ -51,12 +51,12 @@ const Calendar: React.FC = () => {
   const adjustedStartingDay = dayOfWeek === 0 ? 7 : dayOfWeek;
   const daysWithData = month % 2 === 0 ? [3, 12, 18] : [5, 15, 25];
   const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  
+
   // Estados para el popup
   const [popupData, setPopupData] = useState<any>(null);
   const [popupContent, setPopupContent] = useState<string>('');
   const [popupVisible, setPopupVisible] = useState(false);
-  
+
   const prevMonth = () => {
     setDisplayedDate(new Date(year, month - 1, 1));
   };
@@ -81,22 +81,33 @@ const Calendar: React.FC = () => {
         setPopupData(null);
       } else {
         const text = await response.text();
-        if (!text.trim().startsWith('<')) {
-          setPopupContent(`${text}`);
-          setPopupData(null);
-          setPopupVisible(true);
-          return;
-        }
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(text.trim(), 'text/xml');
-        const errors = xmlDoc.getElementsByTagName('parsererror');
-        if (errors.length > 0) {
-          setPopupContent(`XML Parse Error: ${errors[0].textContent}`);
-          setPopupData(null);
+        const trimmed = text.trim();
+        if (trimmed.startsWith('<')) {
+          // Trata como XML
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(trimmed, 'text/xml');
+          const errors = xmlDoc.getElementsByTagName('parsererror');
+          if (errors.length > 0) {
+            setPopupContent(`XML Parse Error: ${errors[0].textContent}`);
+            setPopupData(null);
+          } else {
+            const jsonResult = xmlToJson(xmlDoc);
+            setPopupData(jsonResult);
+            setPopupContent('');
+          }
+        } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          // Trata como JSON
+          try {
+            const jsonResult = JSON.parse(trimmed);
+            setPopupData(jsonResult);
+            setPopupContent('');
+          } catch (jsonError: any) {
+            setPopupContent(`JSON Parse Error: ${jsonError.message}`);
+            setPopupData(null);
+          }
         } else {
-          const jsonResult = xmlToJson(xmlDoc);
-          setPopupData(jsonResult);
-          setPopupContent('');
+          setPopupContent(`Respuesta inesperada: ${trimmed}`);
+          setPopupData(null);
         }
       }
     } catch (error: any) {
@@ -151,4 +162,5 @@ const Calendar: React.FC = () => {
     </div>
   );
 };
+
 export default Calendar;
