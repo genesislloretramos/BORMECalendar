@@ -13,12 +13,44 @@ const Calendar: React.FC = () => {
   const daysWithData = month % 2 === 0 ? [3, 12, 18] : [5, 15, 25];
   const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupContent, setPopupContent] = useState<string>('');
+
   const prevMonth = () => {
     setDisplayedDate(new Date(year, month - 1, 1));
   };
 
   const nextMonth = () => {
     setDisplayedDate(new Date(year, month + 1, 1));
+  };
+
+  // Maneja el clic sobre un día
+  const handleDayClick = (day: number) => {
+    // Construye la fecha en formato AAAAMMDD
+    const date = new Date(displayedDate.getFullYear(), displayedDate.getMonth(), day);
+    const formattedDate = `${date.getFullYear()}${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
+    fetchSumario(formattedDate);
+  };
+
+  // Función para llamar a la API del BORME
+  const fetchSumario = async (date: string) => {
+    try {
+      const response = await fetch(`https://boe.es/datosabiertos/api/borme/sumario/${date}`, {
+        headers: { Accept: 'application/json' }
+      });
+      if (!response.ok) {
+        setPopupContent(`Error: ${response.status} ${response.statusText}`);
+      } else {
+        const data = await response.json();
+        // Se formatea la respuesta (aquí se muestra en JSON con indentación)
+        setPopupContent(JSON.stringify(data, null, 2));
+      }
+    } catch (error: any) {
+      setPopupContent(`Error: ${error.message}`);
+    }
+    setPopupVisible(true);
   };
 
   return (
@@ -40,13 +72,28 @@ const Calendar: React.FC = () => {
             style.gridColumnStart = adjustedStartingDay;
           }
           return (
-            <div key={day} className="calendar-cell" style={style}>
+            <div
+              key={day}
+              className="calendar-cell"
+              style={style}
+              onClick={() => handleDayClick(day)}
+            >
               <span className="day-number">{day}</span>
               <span className={`data-indicator ${daysWithData.includes(day) ? 'has-data' : 'no-data'}`}></span>
             </div>
           );
         })}
       </div>
+
+      {/* Popup modal para mostrar la respuesta de la API */}
+      {popupVisible && (
+        <div className="modal-overlay" onClick={() => setPopupVisible(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setPopupVisible(false)}>Cerrar</button>
+            <pre>{popupContent}</pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
