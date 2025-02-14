@@ -1,26 +1,41 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './SumarioViewer.css';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 interface SumarioViewerProps {
   sumario: any;
 }
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
-  const handleDownload = async (pdfUrl: string) => {
-    // Reemplazamos la URL para usar el proxy
+  const [pdfText, setPdfText] = useState<string>('');
+  const [loadingText, setLoadingText] = useState<boolean>(false);
+  const handleExtractPdfText = async (pdfUrl: string) => {
+    setLoadingText(true);
     const proxyUrl = pdfUrl.replace('https://www.boe.es/', '/pdf-proxy/');
     try {
       const response = await fetch(proxyUrl);
       if (!response.ok) {
-        alert(`Error al descargar PDF: ${response.status}`);
+        alert(`Error al obtener PDF: ${response.status}`);
+        setLoadingText(false);
         return;
       }
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    } catch (error) {
+      const arrayBuffer = await blob.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let textContent = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textItems = await page.getTextContent();
+        const pageText = textItems.items.map(item => (item as any).str).join(' ');
+        textContent += pageText + '\n';
+      }
+      setPdfText(textContent);
+    } catch (error: any) {
       alert(`Error: ${error}`);
     }
+    setLoadingText(false);
   };
 
   const { status, data } = sumario;
@@ -56,9 +71,9 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                     <p><strong>Identificador:</strong> {d.sumario_diario.identificador}</p>
                     {d.sumario_diario.url_pdf && (
                       <p>
-                        <strong>PDF:</strong>{' '}
-                        <button onClick={() => handleDownload(d.sumario_diario.url_pdf.texto)}>
-                          Ver PDF
+                        <strong>Texto PDF:</strong>{' '}
+                        <button onClick={() => handleExtractPdfText(d.sumario_diario.url_pdf.texto)}>
+                          {loadingText ? 'Cargando...' : 'Ver Texto'}
                         </button>
                       </p>
                     )}
@@ -79,9 +94,9 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                                         <p><strong>Título:</strong> {item.titulo}</p>
                                         {item.url_pdf && (
                                           <p>
-                                            <strong>PDF:</strong>{' '}
-                                            <button onClick={() => handleDownload(item.url_pdf.texto)}>
-                                              Ver PDF
+                                            <strong>Texto PDF:</strong>{' '}
+                                            <button onClick={() => handleExtractPdfText(item.url_pdf.texto)}>
+                                              {loadingText ? 'Cargando...' : 'Ver Texto'}
                                             </button>
                                           </p>
                                         )}
@@ -100,6 +115,12 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
           ) : (
             <div>No se encontraron datos en el diario.</div>
           )}
+        </div>
+      )}
+      {pdfText && (
+        <div className="pdf-text">
+          <h3>Contenido del PDF</h3>
+          <pre>{pdfText}</pre>
         </div>
       )}
     </div>
