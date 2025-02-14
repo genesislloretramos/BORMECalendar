@@ -44,7 +44,6 @@ const Calendar: React.FC = () => {
                 setPopupContent(`Error: ${response.status} ${response.statusText}`);
             } else {
                 const data = await response.json();
-                // Se formatea la respuesta (aquí se muestra en JSON con indentación)
                 setPopupContent(JSON.stringify(data, null, 2));
             }
         } catch (error: any) {
