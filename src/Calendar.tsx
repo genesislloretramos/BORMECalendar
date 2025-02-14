@@ -1,58 +1,48 @@
 import React, { useState } from 'react';
 import './Calendar.css';
 
-const xmlToJson = (xml: string): any => {
-  const parser = new DOMParser();
-  // Limpia el XML para eliminar espacios en blanco adicionales
-  const xmlDoc = parser.parseFromString(xml.trim(), 'text/xml');
-
-  // Verifica si hay un error en el parseo
-  const parserErrors = xmlDoc.getElementsByTagName('parsererror');
-  if (parserErrors.length > 0) {
-    throw new Error(parserErrors[0].textContent || 'Error parsing XML');
+const xmlToJson = (xmlNode: Node): any => {
+  // Si es nodo de texto, devolvemos su contenido si no es vacío.
+  if (xmlNode.nodeType === Node.TEXT_NODE) {
+    const text = xmlNode.nodeValue?.trim();
+    return text ? text : null;
   }
 
-  const parseNode = (node: Node): any => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.nodeValue?.trim();
-      return text ? text : null;
-    }
-    const obj: any = {};
+  let obj: any = {};
 
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as Element;
-      if (element.attributes && element.attributes.length > 0) {
-        obj['@attributes'] = {};
-        for (let i = 0; i < element.attributes.length; i++) {
-          const attribute = element.attributes.item(i);
-          if (attribute) {
-            obj['@attributes'][attribute.name] = attribute.value;
-          }
+  // Procesar atributos solo en elementos.
+  if (xmlNode.nodeType === Node.ELEMENT_NODE) {
+    const element = xmlNode as Element;
+    if (element.attributes.length > 0) {
+      obj['@attributes'] = {};
+      for (let i = 0; i < element.attributes.length; i++) {
+        const attr = element.attributes.item(i);
+        if (attr) {
+          obj['@attributes'][attr.name] = attr.value;
         }
       }
     }
+  }
 
-    if (node.childNodes && node.childNodes.length > 0) {
-      for (let i = 0; i < node.childNodes.length; i++) {
-        const child = node.childNodes[i];
-        const childObj = parseNode(child);
-        if (childObj !== null) {
-          const nodeName = child.nodeName;
-          if (obj[nodeName] === undefined) {
-            obj[nodeName] = childObj;
-          } else {
-            if (!Array.isArray(obj[nodeName])) {
-              obj[nodeName] = [obj[nodeName]];
-            }
-            obj[nodeName].push(childObj);
+  // Procesar nodos hijos
+  if (xmlNode.hasChildNodes()) {
+    for (let i = 0; i < xmlNode.childNodes.length; i++) {
+      const child = xmlNode.childNodes[i];
+      const childObj = xmlToJson(child);
+      if (childObj !== null) {
+        const nodeName = child.nodeName;
+        if (obj[nodeName] === undefined) {
+          obj[nodeName] = childObj;
+        } else {
+          if (!Array.isArray(obj[nodeName])) {
+            obj[nodeName] = [obj[nodeName]];
           }
+          obj[nodeName].push(childObj);
         }
       }
     }
-    return obj;
-  };
-
-  return parseNode(xmlDoc);
+  }
+  return obj;
 };
 
 const Calendar: React.FC = () => {
@@ -94,12 +84,23 @@ const Calendar: React.FC = () => {
       if (!response.ok) {
         setPopupContent(`Error: ${response.status} ${response.statusText}`);
       } else {
-        const xmlText = await response.text();
-        try {
-          const jsonResult = xmlToJson(xmlText);
+        const text = await response.text();
+        // Verificamos que la respuesta empiece con "<"
+        if (!text.trim().startsWith('<')) {
+          setPopupContent(`Error: La respuesta no es XML. Se recibió: ${text}`);
+          setPopupVisible(true);
+          return;
+        }
+        // Parsear el XML
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text.trim(), 'text/xml');
+        // Comprobar si hay errores de parseo
+        const errors = xmlDoc.getElementsByTagName('parsererror');
+        if (errors.length > 0) {
+          setPopupContent(`XML Parse Error: ${errors[0].textContent}`);
+        } else {
+          const jsonResult = xmlToJson(xmlDoc);
           setPopupContent(JSON.stringify(jsonResult, null, 2));
-        } catch (parseError: any) {
-          setPopupContent(`XML Parse Error: ${parseError.message}`);
         }
       }
     } catch (error: any) {
