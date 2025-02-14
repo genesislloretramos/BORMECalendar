@@ -3,6 +3,10 @@
     {
       "source": "/api-borme/:match*",
       "destination": "https://boe.es/datosabiertos/api/borme/:match*"
+    },
+    {
+      "source": "/pdf-proxy/:path*",
+      "destination": "https://www.boe.es/:path*"
     }
   ]
 }

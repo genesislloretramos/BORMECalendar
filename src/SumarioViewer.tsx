@@ -7,10 +7,20 @@ interface SumarioViewerProps {
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   const handleDownload = async (pdfUrl: string) => {
-    const response = await fetch(pdfUrl);
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    // Reemplazamos la URL para usar el proxy
+    const proxyUrl = pdfUrl.replace('https://www.boe.es/', '/pdf-proxy/');
+    try {
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        alert(`Error al descargar PDF: ${response.status}`);
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error) {
+      alert(`Error: ${error}`);
+    }
   };
 
   const { status, data } = sumario;
