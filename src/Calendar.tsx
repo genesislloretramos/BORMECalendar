@@ -171,7 +171,7 @@ const Calendar: React.FC = () => {
       {popupVisible && (
         <div className="modal-overlay" onClick={() => setPopupVisible(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setPopupVisible(false)}>Cerrar</button>
+            <button className="close-button" onClick={() => setPopupVisible(false)}>×</button>
             {popupData ? (
               <SumarioViewer sumario={popupData} />
             ) : (
