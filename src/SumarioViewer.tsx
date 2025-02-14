@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import './SumarioViewer.css';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface SumarioViewerProps {
   sumario: any;
@@ -11,8 +10,10 @@ interface SumarioViewerProps {
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   const [pdfText, setPdfText] = useState<string>('');
   const [loadingText, setLoadingText] = useState<boolean>(false);
+
   const handleExtractPdfText = async (pdfUrl: string) => {
     setLoadingText(true);
+    // Use proxy if needed, otherwise use the pdfUrl directly
     const proxyUrl = pdfUrl.replace('https://www.boe.es/', '/pdf-proxy/');
     try {
       const response = await fetch(proxyUrl);
@@ -23,12 +24,12 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
       }
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdf = await getDocument({ data: arrayBuffer }).promise;
       let textContent = '';
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textItems = await page.getTextContent();
-        const pageText = textItems.items.map(item => (item as any).str).join(' ');
+        const pageText = textItems.items.map((item: any) => item.str).join(' ');
         textContent += pageText + '\n';
       }
       setPdfText(textContent);
