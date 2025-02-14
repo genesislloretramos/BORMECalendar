@@ -51,8 +51,6 @@ const Calendar: React.FC = () => {
   const adjustedStartingDay = dayOfWeek === 0 ? 7 : dayOfWeek;
   const daysWithData = month % 2 === 0 ? [3, 12, 18] : [5, 15, 25];
   const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-  // Estados para el popup
   const [popupData, setPopupData] = useState<any>(null);
   const [popupContent, setPopupContent] = useState<string>('');
   const [popupVisible, setPopupVisible] = useState(false);
@@ -67,7 +65,9 @@ const Calendar: React.FC = () => {
 
   const handleDayClick = (day: number) => {
     const date = new Date(displayedDate.getFullYear(), displayedDate.getMonth(), day);
-    const formattedDate = `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
+    const formattedDate = `${date.getFullYear()}${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
     fetchSumario(formattedDate);
   };
 
@@ -83,7 +83,6 @@ const Calendar: React.FC = () => {
         const text = await response.text();
         const trimmed = text.trim();
         if (trimmed.startsWith('<')) {
-          // Trata como XML
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(trimmed, 'text/xml');
           const errors = xmlDoc.getElementsByTagName('parsererror');
@@ -96,7 +95,6 @@ const Calendar: React.FC = () => {
             setPopupContent('');
           }
         } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-          // Trata como JSON
           try {
             const jsonResult = JSON.parse(trimmed);
             setPopupData(jsonResult);
@@ -120,13 +118,9 @@ const Calendar: React.FC = () => {
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <button onClick={prevMonth} className="nav-button" aria-label="Mes anterior">
-          &#8592;
-        </button>
+        <button onClick={prevMonth} className="nav-button" aria-label="Mes anterior">&#8592;</button>
         <h2>{displayedDate.toLocaleString('default', { month: 'long' })} {year}</h2>
-        <button onClick={nextMonth} className="nav-button" aria-label="Mes siguiente">
-          &#8594;
-        </button>
+        <button onClick={nextMonth} className="nav-button" aria-label="Mes siguiente">&#8594;</button>
       </div>
       <div className="calendar-day-names">
         {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(dayName => (

@@ -1,4 +1,3 @@
-// src/SumarioViewer.tsx
 import React from 'react';
 
 interface SumarioViewerProps {
@@ -12,7 +11,6 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
 
   return (
     <div className="sumario-viewer">
-      {/* Encabezado */}
       <div className="popup-header">
         <h2>Sumario BORME</h2>
         {status && (
@@ -22,19 +20,13 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
           </div>
         )}
       </div>
-      {/* Metadatos */}
       {metadatos && (
         <div className="metadatos">
           <h3>Metadatos</h3>
-          <p>
-            <strong>Publicación:</strong> {metadatos.publicacion}
-          </p>
-          <p>
-            <strong>Fecha de Publicación:</strong> {metadatos.fecha_publicacion}
-          </p>
+          <p><strong>Publicación:</strong> {metadatos.publicacion}</p>
+          <p><strong>Fecha de Publicación:</strong> {metadatos.fecha_publicacion}</p>
         </div>
       )}
-      {/* Diario */}
       {diario && (
         <div className="diario">
           <h3>Diario</h3>
@@ -44,9 +36,7 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                 <h4>Diario Número: {d.numero}</h4>
                 {d.sumario_diario && (
                   <div className="sumario-diario">
-                    <p>
-                      <strong>Identificador:</strong> {d.sumario_diario.identificador}
-                    </p>
+                    <p><strong>Identificador:</strong> {d.sumario_diario.identificador}</p>
                     {d.sumario_diario.url_pdf && (
                       <p>
                         <strong>PDF:</strong>{' '}
@@ -57,26 +47,19 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                     )}
                   </div>
                 )}
-                {/* Secciones */}
                 {d.seccion && (
                   <div className="secciones">
                     {Array.isArray(d.seccion)
                       ? d.seccion.map((s: any, sIdx: number) => (
                           <div key={sIdx} className="seccion">
-                            <h5>
-                              Sección {s.codigo} – {s.nombre}
-                            </h5>
+                            <h5>Sección {s.codigo} – {s.nombre}</h5>
                             {s.item && (
                               <ul className="items">
                                 {Array.isArray(s.item)
                                   ? s.item.map((item: any, iIdx: number) => (
                                       <li key={iIdx} className="item">
-                                        <p>
-                                          <strong>Identificador:</strong> {item.identificador}
-                                        </p>
-                                        <p>
-                                          <strong>Título:</strong> {item.titulo}
-                                        </p>
+                                        <p><strong>Identificador:</strong> {item.identificador}</p>
+                                        <p><strong>Título:</strong> {item.titulo}</p>
                                         {item.url_pdf && (
                                           <p>
                                             <strong>PDF:</strong>{' '}
