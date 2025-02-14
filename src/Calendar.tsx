@@ -1,27 +1,33 @@
 import React, { useState } from 'react';
 import './Calendar.css';
 
+// Función para convertir XML a JSON
 const xmlToJson = (xml: string): any => {
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xml, "text/xml");
-  
-  const traverse = (node: any): any => {
+  const xmlDoc = parser.parseFromString(xml, 'text/xml');
+
+  const parseNode = (node: Node): any => {
+    // Si es un nodo de texto, devolver el texto si no es vacío
     if (node.nodeType === Node.TEXT_NODE) {
-      const trimmed = node.nodeValue.trim();
-      return trimmed ? trimmed : null;
+      const text = node.nodeValue?.trim();
+      return text ? text : null;
     }
     const obj: any = {};
+    // Procesar atributos (si existen)
     if (node.attributes && node.attributes.length > 0) {
-      obj["@attributes"] = {};
+      obj['@attributes'] = {};
       for (let i = 0; i < node.attributes.length; i++) {
-        const attr = node.attributes[i];
-        obj["@attributes"][attr.nodeName] = attr.nodeValue;
+        const attribute = node.attributes.item(i);
+        if (attribute) {
+          obj['@attributes'][attribute.nodeName] = attribute.nodeValue;
+        }
       }
     }
+    // Procesar nodos hijos
     if (node.childNodes && node.childNodes.length > 0) {
       for (let i = 0; i < node.childNodes.length; i++) {
         const child = node.childNodes[i];
-        const childObj = traverse(child);
+        const childObj = parseNode(child);
         if (childObj !== null) {
           const nodeName = child.nodeName;
           if (obj[nodeName] === undefined) {
@@ -38,12 +44,14 @@ const xmlToJson = (xml: string): any => {
     return obj;
   };
 
-  return traverse(xmlDoc);
+  return parseNode(xmlDoc);
 };
 
 const Calendar: React.FC = () => {
   const today = new Date();
-  const [displayedDate, setDisplayedDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [displayedDate, setDisplayedDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
   const year = displayedDate.getFullYear();
   const month = displayedDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -93,13 +101,19 @@ const Calendar: React.FC = () => {
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <button onClick={prevMonth} className="nav-button" aria-label="Mes anterior">&#8592;</button>
+        <button onClick={prevMonth} className="nav-button" aria-label="Mes anterior">
+          &#8592;
+        </button>
         <h2>{displayedDate.toLocaleString('default', { month: 'long' })} {year}</h2>
-        <button onClick={nextMonth} className="nav-button" aria-label="Mes siguiente">&#8594;</button>
+        <button onClick={nextMonth} className="nav-button" aria-label="Mes siguiente">
+          &#8594;
+        </button>
       </div>
       <div className="calendar-day-names">
         {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(dayName => (
-          <div key={dayName} className="calendar-day-name">{dayName}</div>
+          <div key={dayName} className="calendar-day-name">
+            {dayName}
+          </div>
         ))}
       </div>
       <div className="calendar-grid">
@@ -116,14 +130,16 @@ const Calendar: React.FC = () => {
               onClick={() => handleDayClick(day)}
             >
               <span className="day-number">{day}</span>
-              <span className={`data-indicator ${daysWithData.includes(day) ? 'has-data' : 'no-data'}`}></span>
+              <span
+                className={`data-indicator ${daysWithData.includes(day) ? 'has-data' : 'no-data'}`}
+              ></span>
             </div>
           );
         })}
       </div>
       {popupVisible && (
         <div className="modal-overlay" onClick={() => setPopupVisible(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button onClick={() => setPopupVisible(false)}>Cerrar</button>
             <pre>{popupContent}</pre>
           </div>
