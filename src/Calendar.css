@@ -200,22 +200,24 @@
 
 .close-button {
     background: var(--close-bg);
-    border: 1px solid var(--close-border);
+    border: none;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    font-size: 1.2rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1.4rem;
     font-weight: bold;
     color: var(--text-color);
     cursor: pointer;
     outline: none;
-    transition: background 0.3s, transform 0.2s;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
     position: absolute;
-    top: 8px;
-    right: 8px;
-}
-
-.close-button:hover {
+    top: 16px;
+    right: 16px;
+  }
+  
+  .close-button:hover {
     background: var(--close-hover-bg);
-    transform: scale(1.1);
-}
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
