@@ -1,10 +1,17 @@
 import React from 'react';
-import './SumarioViewer.css';
+
 interface SumarioViewerProps {
   sumario: any;
 }
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
+  const handleDownload = async (pdfUrl: string) => {
+    const response = await fetch(pdfUrl);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
+
   const { status, data } = sumario;
   const metadatos = data?.sumario?.metadatos;
   const diario = data?.sumario?.diario;
@@ -39,9 +46,9 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                     {d.sumario_diario.url_pdf && (
                       <p>
                         <strong>PDF:</strong>{' '}
-                        <a href={d.sumario_diario.url_pdf.texto} target="_blank" rel="noopener noreferrer">
+                        <button onClick={() => handleDownload(d.sumario_diario.url_pdf.texto)}>
                           Ver PDF
-                        </a>
+                        </button>
                       </p>
                     )}
                   </div>
@@ -62,9 +69,9 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                                         {item.url_pdf && (
                                           <p>
                                             <strong>PDF:</strong>{' '}
-                                            <a href={item.url_pdf.texto} target="_blank" rel="noopener noreferrer">
+                                            <button onClick={() => handleDownload(item.url_pdf.texto)}>
                                               Ver PDF
-                                            </a>
+                                            </button>
                                           </p>
                                         )}
                                       </li>
