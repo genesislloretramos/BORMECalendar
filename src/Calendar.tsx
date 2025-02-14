@@ -43,17 +43,18 @@ const xmlToJson = (xmlNode: Node): any => {
 const Calendar: React.FC = () => {
   const today = new Date();
   const [displayedDate, setDisplayedDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [popupData, setPopupData] = useState<any>(null);
+  const [popupContent, setPopupContent] = useState<string>('');
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedDayStatus, setSelectedDayStatus] = useState<string | null>(null);
   const year = displayedDate.getFullYear();
   const month = displayedDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1);
   const dayOfWeek = firstDay.getDay();
   const adjustedStartingDay = dayOfWeek === 0 ? 7 : dayOfWeek;
-  const daysWithData = month % 2 === 0 ? [3, 12, 18] : [5, 15, 25];
   const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const [popupData, setPopupData] = useState<any>(null);
-  const [popupContent, setPopupContent] = useState<string>('');
-  const [popupVisible, setPopupVisible] = useState(false);
 
   const prevMonth = () => {
     setDisplayedDate(new Date(year, month - 1, 1));
@@ -64,10 +65,10 @@ const Calendar: React.FC = () => {
   };
 
   const handleDayClick = (day: number) => {
-    const date = new Date(displayedDate.getFullYear(), displayedDate.getMonth(), day);
-    const formattedDate = `${date.getFullYear()}${(date.getMonth() + 1)
+    setSelectedDay(day);
+    const formattedDate = `${displayedDate.getFullYear()}${(displayedDate.getMonth() + 1)
       .toString()
-      .padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
+      .padStart(2, '0')}${day.toString().padStart(2, '0')}`;
     fetchSumario(formattedDate);
   };
 
@@ -79,6 +80,7 @@ const Calendar: React.FC = () => {
       if (!response.ok) {
         setPopupContent(`Error: ${response.status} ${response.statusText}`);
         setPopupData(null);
+        setSelectedDayStatus("red");
       } else {
         const text = await response.text();
         const trimmed = text.trim();
@@ -89,30 +91,47 @@ const Calendar: React.FC = () => {
           if (errors.length > 0) {
             setPopupContent(`XML Parse Error: ${errors[0].textContent}`);
             setPopupData(null);
+            setSelectedDayStatus("red");
           } else {
             const jsonResult = xmlToJson(xmlDoc);
-            setPopupData(jsonResult);
-            setPopupContent('');
+            if (jsonResult?.status?.code !== "200") {
+              setSelectedDayStatus("red");
+              setPopupData(null);
+            } else {
+              setSelectedDayStatus("green");
+              setPopupData(jsonResult);
+              setPopupContent('');
+              setPopupVisible(true);
+            }
           }
         } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
           try {
             const jsonResult = JSON.parse(trimmed);
-            setPopupData(jsonResult);
-            setPopupContent('');
+            if (jsonResult?.status?.code !== "200") {
+              setSelectedDayStatus("red");
+              setPopupData(null);
+            } else {
+              setSelectedDayStatus("green");
+              setPopupData(jsonResult);
+              setPopupContent('');
+              setPopupVisible(true);
+            }
           } catch (jsonError: any) {
             setPopupContent(`JSON Parse Error: ${jsonError.message}`);
             setPopupData(null);
+            setSelectedDayStatus("red");
           }
         } else {
           setPopupContent(`Respuesta inesperada: ${trimmed}`);
           setPopupData(null);
+          setSelectedDayStatus("red");
         }
       }
     } catch (error: any) {
       setPopupContent(`Error: ${error.message}`);
       setPopupData(null);
+      setSelectedDayStatus("red");
     }
-    setPopupVisible(true);
   };
 
   return (
@@ -133,10 +152,14 @@ const Calendar: React.FC = () => {
           if (index === 0 && adjustedStartingDay !== 1) {
             style.gridColumnStart = adjustedStartingDay;
           }
+          let dotClass = "default-indicator";
+          if (day === selectedDay) {
+            dotClass = selectedDayStatus === "green" ? "status-green" : selectedDayStatus === "red" ? "status-red" : "default-indicator";
+          }
           return (
             <div key={day} className="calendar-cell" style={style} onClick={() => handleDayClick(day)}>
               <span className="day-number">{day}</span>
-              <span className={`data-indicator ${daysWithData.includes(day) ? 'has-data' : 'no-data'}`}></span>
+              <span className={`data-indicator ${dotClass}`}></span>
             </div>
           );
         })}
