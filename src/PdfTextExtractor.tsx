@@ -7,8 +7,11 @@ interface PdfTextExtractorProps {
 }
 
 const processPdfText = (text: string): string => {
-  const headerRegex = /BOLETÍN OFICIAL DEL REGISTRO MERCANTIL.*?https:\/\/www\.boe\.es\s*/gi;
-  return text.replace(headerRegex, '').trim();
+  // Elimina el encabezado del boletín
+  text = text.replace(/BOLETÍN OFICIAL DEL REGISTRO MERCANTIL.*?https:\/\/www\.boe\.es\s*/gi, '');
+  // Elimina "SECCIÓN PRIMERA  Empresarios  Actos inscritos  {{provincia}}"
+  text = text.replace(/SECCIÓN PRIMERA\s+Empresarios\s+Actos inscritos\s+[\w\sáéíóúÁÉÍÓÚ,.-]*/gi, '');
+  return text.trim();
 };
 
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
