@@ -203,22 +203,19 @@
     background: var(--close-bg);
     border: none;
     border-radius: 50%;
-    width: 3em;
-    height: 3em;
+    width: 2.2rem;
+    height: 2.2rem;
     font-size: 2rem;
     font-weight: bold;
     color: var(--text-color);
     cursor: pointer;
     outline: none;
     transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    position: absolute;
-    top: 16px;
-    right: 16px;
+    position: relative;
   }
   
   .close-button:hover {
     background: var(--close-hover-bg);
-    transform: scale(1.15);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
   
