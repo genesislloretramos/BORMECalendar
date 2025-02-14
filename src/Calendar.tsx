@@ -24,9 +24,7 @@ const Calendar: React.FC = () => {
         setDisplayedDate(new Date(year, month + 1, 1));
     };
 
-    // Maneja el clic sobre un día
     const handleDayClick = (day: number) => {
-        // Construye la fecha en formato AAAAMMDD
         const date = new Date(displayedDate.getFullYear(), displayedDate.getMonth(), day);
         const formattedDate = `${date.getFullYear()}${(date.getMonth() + 1)
             .toString()
@@ -34,7 +32,6 @@ const Calendar: React.FC = () => {
         fetchSumario(formattedDate);
     };
 
-    // Función para llamar a la API del BORME
     const fetchSumario = async (date: string) => {
         try {
             const response = await fetch(`/api-borme/sumario/${date}`, {
@@ -83,8 +80,6 @@ const Calendar: React.FC = () => {
                     );
                 })}
             </div>
-
-            {/* Popup modal para mostrar la respuesta de la API */}
             {popupVisible && (
                 <div className="modal-overlay" onClick={() => setPopupVisible(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>

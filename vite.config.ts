@@ -8,7 +8,7 @@ export default defineConfig({
       '/api-borme': {
         target: 'https://boe.es',
         changeOrigin: true,
-        rewrite: (path) => path.replace('/api-borme', '/datosabiertos/api/borme'),
+        rewrite: (path) => path.replace(/^\/api-borme/, '/datosabiertos/api/borme'),
       }
     }
   }

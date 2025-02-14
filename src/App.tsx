@@ -1,4 +1,3 @@
-// Después:
 import Calendar from './Calendar';
 import './App.css';
 
