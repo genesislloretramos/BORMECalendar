@@ -1,0 +1,9 @@
+{
+    "rewrites": [
+      {
+        "source": "/api-borme/:match*",
+        "destination": "https://boe.es/datosabiertos/api/borme/:match*"
+      }
+    ]
+  }
+  
