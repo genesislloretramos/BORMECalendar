@@ -7,15 +7,9 @@ interface PdfTextExtractorProps {
 }
 
 const processPdfText = (text: string): string => {
-  text = text.replace(/BOLETÍN OFICIAL DEL REGISTRO MERCANTIL.*?https:\/\/www\.boe\.es\s*/gi, '');
-  text = text.replace(/SECCIÓN PRIMERA\s+Empresarios\s+Actos inscritos\s+[^\n]+/gi, '');
   text = text.replace(/\s{3,}/g, '\n');
   text = text.replace(/\s{2,}/g, '\n');
-  let lines = text.split('\n');
-  if (lines.length > 3) {
-    lines = lines.slice(0, lines.length - 3);
-  }
-  return lines.join('\n').trim();
+  return text;
 };
 
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
