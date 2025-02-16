@@ -42,7 +42,7 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
                 {item.url_pdf && (
                   <div>
                     <strong>Texto PDF:</strong>
-                    <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
+                    <PdfTextExtractor pdfUgrl={item.url_pdf.texto} />
                   </div>
                 )}
               </li>
