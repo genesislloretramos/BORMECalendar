@@ -25,7 +25,23 @@ const processPdfText = (text: string): string => {
       continue;
     }
   }
-  return processedLines.join('\n');
+  let finalLines: string[] = [];
+  let accumulator = '';
+  const pattern = /^\d+\s*-\s*.+/;
+  for (let i = 0; i < processedLines.length; i++) {
+    const line = processedLines[i].trim();
+    if (pattern.test(line)) {
+      if (accumulator) {
+        finalLines.push(accumulator.trim());
+        accumulator = '';
+      }
+      finalLines.push(line);
+    } else {
+      accumulator += (accumulator ? ' ' : '') + line;
+    }
+  }
+  if (accumulator) { finalLines.push(accumulator.trim()); }
+  return finalLines.join('\n');
 };
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   const [text, setText] = useState<string>('Cargando texto...');
@@ -53,5 +69,4 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   }, [pdfUrl]);
   return <pre>{text}</pre>;
 };
-
 export default PdfTextExtractor;
