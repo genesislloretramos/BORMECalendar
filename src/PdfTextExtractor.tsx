@@ -9,9 +9,24 @@ interface PdfTextExtractorProps {
 const processPdfText = (text: string): string => {
   text = text.replace(/\s{3,}/g, '\n');
   text = text.replace(/\s{2,}/g, '\n');
-  return text;
+  let lines = text.split('\n');
+  if (lines.length > 10) { lines = lines.slice(10); }
+  if (lines.length > 2) { lines = lines.slice(0, -2); }
+  let processedLines: string[] = [];
+  let skipMode = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (!skipMode) {
+      if (lines[i].includes('BOLETÍN OFICIAL DEL REGISTRO MERCANTIL')) {
+        skipMode = true;
+        continue;
+      } else { processedLines.push(lines[i]); }
+    } else {
+      if (lines[i].includes('https://www.boe.es')) { skipMode = false; }
+      continue;
+    }
+  }
+  return processedLines.join('\n');
 };
-
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   const [text, setText] = useState<string>('Cargando texto...');
   useEffect(() => {
