@@ -11,7 +11,7 @@ const processPdfText = (text: string): string => {
   text = text.replace(/\s{2,}/g, '\n');
   let lines = text.split('\n');
   if (lines.length > 10) { lines = lines.slice(10); }
-  if (lines.length > 2) { lines = lines.slice(0, -2); }
+  if (lines.length > 3) { lines = lines.slice(0, -3); }
   let processedLines: string[] = [];
   let skipMode = false;
   for (let i = 0; i < lines.length; i++) {
