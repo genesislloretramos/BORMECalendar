@@ -115,3 +115,10 @@
   .item a:hover {
     text-decoration: underline;
   }
+
+  .item details {
+    cursor: pointer;
+  }
+
+  .item summary {
+    margin-bottom: 0.5rem;  }

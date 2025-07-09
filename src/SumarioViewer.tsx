@@ -39,14 +39,17 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
           <ul className="items">
             {filteredItems.map((item: any, iIdx: number) => (
               <li key={iIdx} className="item">
-                <p><strong>Identificador:</strong> {item.identificador}</p>
-                <p><strong>Título:</strong> {item.titulo}</p>
-                {item.url_pdf && (
-                  <div>
-                    <strong>Texto PDF:</strong>
-                    <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
+                <details>
+                  <summary>
+                    <strong>Identificador:</strong> {item.identificador} –{' '}
+                    <strong>Título:</strong> {item.titulo}
+                  </summary>
+                  {item.url_pdf && (
+                    <div className="pdf-text">
+                      <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
                     </div>
-                )}
+                  )}
+                </details>
               </li>
             ))}
           </ul>
