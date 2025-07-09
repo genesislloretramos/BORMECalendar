@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
+import './PdfTextExtractor.css';
 GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface PdfTextExtractorProps {
@@ -97,8 +98,13 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   return (
     <ul className="pdf-entries">
       {entries.map((e) => (
-        <li key={e.id}>
-          <strong>{e.id}</strong> - {e.text}
+        <li key={e.id} className="pdf-entry">
+          <details>
+            <summary>
+              <strong>{e.id}</strong>
+            </summary>
+            <p>{e.text}</p>
+          </details>
         </li>
       ))}
     </ul>
