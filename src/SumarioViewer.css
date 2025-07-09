@@ -115,3 +115,10 @@
   .item a:hover {
     text-decoration: underline;
   }
+
+  .pdf-entries details {
+    margin-bottom: 0.5rem;
+  }
+
+  .pdf-entries summary {
+    cursor: pointer;  }
