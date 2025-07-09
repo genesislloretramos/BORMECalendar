@@ -15,39 +15,47 @@ interface PdfEntry {
 const processPdfText = (text: string): string[] => {
   text = text.replace(/\s{3,}/g, '\n');
   text = text.replace(/\s{2,}/g, '\n');
-  let lines = text.split('\n');
-  if (lines.length > 10) { lines = lines.slice(10); }
-  if (lines.length > 3) { lines = lines.slice(0, -3); }
-  const processedLines: string[] = [];
+  let lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  const firstIndex = lines.findIndex((l) => /^\d+\s*-/.test(l));
+  if (firstIndex !== -1) {
+    lines = lines.slice(firstIndex);
+  }
+
+  const cleanedLines: string[] = [];
   let skipMode = false;
-  for (let i = 0; i < lines.length; i++) {
+  for (const line of lines) {
     if (!skipMode) {
-      if (lines[i].includes('BOLETÍN OFICIAL DEL REGISTRO MERCANTIL')) {
+      if (line.includes('BOLETÍN OFICIAL DEL REGISTRO MERCANTIL')) {
         skipMode = true;
         continue;
-      } else { processedLines.push(lines[i]); }
-    } else {
-      if (lines[i].includes('https://www.boe.es')) { skipMode = false; }
-      continue;
-    }
-  }
-  const finalLines: string[] = [];
-  let accumulator = '';
-  const pattern = /^\d+\s*-\s*.+/;
-  for (let i = 0; i < processedLines.length; i++) {
-    const line = processedLines[i].trim();
-    if (pattern.test(line)) {
-      if (accumulator) {
-        finalLines.push(accumulator.trim());
-        accumulator = '';
       }
-      finalLines.push(line);
-    } else {
-      accumulator += (accumulator ? ' ' : '') + line;
+      cleanedLines.push(line);
+    } else if (line.includes('https://www.boe.es')) {
+      skipMode = false;
     }
   }
-  if (accumulator) { finalLines.push(accumulator.trim()); }
-  return finalLines;
+
+  const entries: string[] = [];
+  let current = '';
+  const pattern = /^\d+\s*-\s*.+/;
+  for (const line of cleanedLines) {
+    if (pattern.test(line)) {
+      if (current) {
+        entries.push(current.trim());
+      }
+      current = line;
+    } else {
+      current += (current ? ' ' : '') + line;
+    }
+  }
+  if (current) {
+    entries.push(current.trim());
+  }
+  return entries;
 };
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   const [entries, setEntries] = useState<PdfEntry[]>([]);
