@@ -2,6 +2,8 @@ import React from 'react';
 import './SumarioViewer.css';
 import PdfTextExtractor from './PdfTextExtractor';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 interface SumarioViewerProps {
   sumario: any;
 }

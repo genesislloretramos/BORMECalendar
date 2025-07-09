@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import SumarioViewer from './SumarioViewer';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 const xmlToJson = (xmlNode: Node): any => {
   if (xmlNode.nodeType === Node.TEXT_NODE) {
     const text = xmlNode.nodeValue?.trim();
