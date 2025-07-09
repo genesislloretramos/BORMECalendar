@@ -3,18 +3,21 @@ import './SumarioViewer.css';
 import PdfTextExtractor from './PdfTextExtractor';
 
 interface SumarioViewerProps {
-  sumario: any;
+  sumario: Record<string, unknown>;
 }
 
 const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   const diario = sumario?.data?.sumario?.diario;
   const seccionA = Array.isArray(diario)
-    ? diario.map((d: any) => {
-        if (d.seccion && Array.isArray(d.seccion)) {
-          return d.seccion.find((s: any) => s.codigo === "A");
-        }
-        return null;
-      }).filter((s: any) => s !== null)
+    ? diario
+        .map(d => {
+          if (typeof d === 'object' && d && Array.isArray((d as Record<string, unknown>).seccion as unknown[])) {
+            const sectionArr = (d as Record<string, unknown>).seccion as unknown[];
+            return sectionArr.find(s => (s as Record<string, unknown>).codigo === "A") as Record<string, unknown> | null;
+          }
+          return null;
+        })
+        .filter(s => s !== null)
     : [];
 
   if (seccionA.length === 0) {
@@ -22,8 +25,10 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
   }
 
   const section = seccionA[0];
-  const filteredItems = Array.isArray(section.item)
-    ? section.item.filter((item: any) => !item.titulo.includes("ÍNDICE ALFABÉTICO DE SOCIEDADES"))
+  const filteredItems = Array.isArray((section as Record<string, unknown>).item as unknown[])
+    ? ((section as Record<string, unknown>).item as unknown[]).filter(item =>
+        !(item as Record<string, unknown>).titulo?.includes("ÍNDICE ALFABÉTICO DE SOCIEDADES")
+      )
     : [];
 
   return (
@@ -35,18 +40,21 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
         <h5>Sección {section.codigo} – {section.nombre}</h5>
         {filteredItems.length > 0 && (
           <ul className="items">
-            {filteredItems.map((item: any, iIdx: number) => (
-              <li key={iIdx} className="item">
-                <p><strong>Identificador:</strong> {item.identificador}</p>
-                <p><strong>Título:</strong> {item.titulo}</p>
-                {item.url_pdf && (
-                  <div>
-                    <strong>Texto PDF:</strong>
-                    <PdfTextExtractor pdfUrl={item.url_pdf.texto} />
+            {filteredItems.map((item: Record<string, unknown>, iIdx: number) => {
+              const obj = item as Record<string, unknown>;
+              return (
+                <li key={iIdx} className="item">
+                  <p><strong>Identificador:</strong> {obj.identificador}</p>
+                  <p><strong>Título:</strong> {obj.titulo}</p>
+                  {obj.url_pdf && (
+                    <div>
+                      <strong>Texto PDF:</strong>
+                      <PdfTextExtractor pdfUrl={obj.url_pdf.texto} />
                     </div>
-                )}
-              </li>
-            ))}
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

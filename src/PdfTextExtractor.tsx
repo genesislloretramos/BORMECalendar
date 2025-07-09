@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface PdfTextExtractorProps {
@@ -12,7 +13,7 @@ const processPdfText = (text: string): string => {
   let lines = text.split('\n');
   if (lines.length > 10) { lines = lines.slice(10); }
   if (lines.length > 3) { lines = lines.slice(0, -3); }
-  let processedLines: string[] = [];
+  const processedLines: string[] = [];
   let skipMode = false;
   for (let i = 0; i < lines.length; i++) {
     if (!skipMode) {
@@ -25,7 +26,7 @@ const processPdfText = (text: string): string => {
       continue;
     }
   }
-  let finalLines: string[] = [];
+  const finalLines: string[] = [];
   let accumulator = '';
   const pattern = /^\d+\s*-\s*.+/;
   for (let i = 0; i < processedLines.length; i++) {
@@ -43,8 +44,31 @@ const processPdfText = (text: string): string => {
   if (accumulator) { finalLines.push(accumulator.trim()); }
   return finalLines.join('\n');
 };
+interface Entry { id: string; name: string; details: string; }
+
+const parseEntries = (text: string): Entry[] => {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  return lines.map(line => {
+    const match = line.match(/^(\d+)\s*-\s*(.+)$/);
+    let id = '', rest = line;
+    if (match) {
+      id = match[1];
+      rest = match[2];
+    }
+    const dotIdx = rest.indexOf('.');
+    let name = rest;
+    let details = '';
+    if (dotIdx !== -1) {
+      name = rest.substring(0, dotIdx).trim();
+      details = rest.substring(dotIdx + 1).trim();
+    }
+    return { id, name, details };
+  });
+};
+
 const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
-  const [text, setText] = useState<string>('Cargando texto...');
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [status, setStatus] = useState<string>('Cargando texto...');
   useEffect(() => {
     async function extractText() {
       try {
@@ -57,16 +81,35 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
           const content = await page.getTextContent();
-          const pageText = content.items.map((item: any) => item.str).join(' ');
+          const pageText = (content.items as TextItem[]).map(item => item.str).join(' ');
           fullText += processPdfText(pageText) + '\n';
         }
-        setText(fullText);
-      } catch (error: any) {
-        setText(`Error al extraer texto: ${error.message}`);
+        setEntries(parseEntries(fullText));
+        setStatus('');
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setStatus(`Error al extraer texto: ${error.message}`);
+        } else {
+          setStatus('Error al extraer texto');
+        }
       }
     }
     extractText();
   }, [pdfUrl]);
-  return <pre>{text}</pre>;
+
+  if (status) {
+    return <pre>{status}</pre>;
+  }
+
+  return (
+    <ul>
+      {entries.map(entry => (
+        <li key={entry.id}>
+          <strong>{entry.id}</strong> - <strong>{entry.name}</strong>
+          <div>{entry.details}</div>
+        </li>
+      ))}
+    </ul>
+  );
 };
 export default PdfTextExtractor;

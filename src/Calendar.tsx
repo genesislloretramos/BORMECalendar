@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 import SumarioViewer from './SumarioViewer';
 
-const xmlToJson = (xmlNode: Node): any => {
+const xmlToJson = (xmlNode: Node): Record<string, unknown> | string | null => {
   if (xmlNode.nodeType === Node.TEXT_NODE) {
     const text = xmlNode.nodeValue?.trim();
     return text ? text : null;
   }
-  const obj: any = {};
+  const obj: Record<string, unknown> = {};
   if (xmlNode.nodeType === Node.ELEMENT_NODE) {
     const element = xmlNode as Element;
     if (element.attributes.length > 0) {
@@ -42,7 +42,7 @@ const xmlToJson = (xmlNode: Node): any => {
 
 interface DayData {
   status: string;
-  data?: any;
+  data?: unknown;
   error?: string;
 }
 
@@ -50,7 +50,7 @@ const Calendar: React.FC = () => {
   const today = new Date();
   const [displayedDate, setDisplayedDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [daysData, setDaysData] = useState<{ [key: number]: DayData }>({});
-  const [popupData, setPopupData] = useState<any>(null);
+  const [popupData, setPopupData] = useState<Record<string, unknown> | null>(null);
   const [popupVisible, setPopupVisible] = useState(false);
   const year = displayedDate.getFullYear();
   const month = displayedDate.getMonth();
@@ -76,7 +76,7 @@ const Calendar: React.FC = () => {
           } else {
             const text = await response.text();
             const trimmed = text.trim();
-            let jsonResult: any;
+            let jsonResult: unknown;
             if (trimmed.startsWith('<')) {
               const parser = new DOMParser();
               const xmlDoc = parser.parseFromString(trimmed, 'text/xml');
@@ -85,18 +85,23 @@ const Calendar: React.FC = () => {
                 dayData = { status: "red", error: `XML Parse Error: ${errors[0].textContent}` };
               } else {
                 jsonResult = xmlToJson(xmlDoc);
-                dayData = jsonResult?.status?.code === "200" ? { status: "green", data: jsonResult } : { status: "red", data: jsonResult };
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const code = (jsonResult as any)?.status?.code;
+                dayData = code === "200" ? { status: "green", data: jsonResult } : { status: "red", data: jsonResult };
               }
             } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
               jsonResult = JSON.parse(trimmed);
-              dayData = jsonResult?.status?.code === "200" ? { status: "green", data: jsonResult } : { status: "red", data: jsonResult };
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const code = (jsonResult as any)?.status?.code;
+              dayData = code === "200" ? { status: "green", data: jsonResult } : { status: "red", data: jsonResult };
             } else {
               dayData = { status: "red", error: `Respuesta inesperada: ${trimmed}` };
             }
           }
           setDaysData(prev => ({ ...prev, [day]: dayData }));
-        } catch (error: any) {
-          setDaysData(prev => ({ ...prev, [day]: { status: "red", error: error.message } }));
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : 'Error';
+          setDaysData(prev => ({ ...prev, [day]: { status: "red", error: message } }));
         }
       }
     }
