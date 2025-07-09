@@ -97,8 +97,14 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
   return (
     <ul className="pdf-entries">
       {entries.map((e) => (
-        <li key={e.id}>
-          <strong>{e.id}</strong> - {e.text}
+        <li key={e.id} className="pdf-entry">
+          <details>
+            <summary>
+              <strong>{e.id}</strong> - {e.text.slice(0, 50)}
+              {e.text.length > 50 ? '…' : ''}
+            </summary>
+            <p>{e.text}</p>
+          </details>
         </li>
       ))}
     </ul>
