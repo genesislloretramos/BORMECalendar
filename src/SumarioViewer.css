@@ -113,5 +113,17 @@
   }
   
   .item a:hover {
-    text-decoration: underline;
+    text-decoration: underline;  }
+
+  .pdf-entries {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .pdf-entry details {
+    margin: 0.4rem 0;
+  }
+
+  .pdf-entry summary {
+    cursor: pointer;
   }
