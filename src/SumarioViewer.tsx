@@ -53,5 +53,4 @@ const SumarioViewer: React.FC<SumarioViewerProps> = ({ sumario }) => {
     </div>
   );
 };
-
 export default SumarioViewer;
