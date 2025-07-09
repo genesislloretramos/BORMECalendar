@@ -7,10 +7,57 @@ interface PdfTextExtractorProps {
   pdfUrl: string;
 }
 
+interface CompanyData {
+  nombre?: string;
+  comienzo?: string;
+  objeto?: string;
+  domicilio?: string;
+  capital?: string;
+  nombramientos?: string;
+  datos?: string;
+}
+
 interface PdfEntry {
   id: string;
   text: string;
+  parsed?: CompanyData;
 }
+
+const parseConstitutionText = (text: string): CompanyData | null => {
+  if (!text.includes('Constituci')) {
+    return null;
+  }
+  const data: CompanyData = {};
+  const nombreMatch = text.match(/^(.+?)\s+Constituci/i);
+  if (nombreMatch) {
+    data.nombre = nombreMatch[1].trim();
+  }
+  const comienzoMatch = text.match(/Comienzo de operaciones:\s*([^\.]+)\./i);
+  if (comienzoMatch) {
+    data.comienzo = comienzoMatch[1].trim();
+  }
+  const objetoMatch = text.match(/Objeto social:\s*(.+?)\s+Domicilio:/i);
+  if (objetoMatch) {
+    data.objeto = objetoMatch[1].trim();
+  }
+  const domicilioMatch = text.match(/Domicilio:\s*([^\.]+)\./i);
+  if (domicilioMatch) {
+    data.domicilio = domicilioMatch[1].trim();
+  }
+  const capitalMatch = text.match(/Capital:\s*([^\.]+)\./i);
+  if (capitalMatch) {
+    data.capital = capitalMatch[1].trim();
+  }
+  const nomMatch = text.match(/Nombramientos\.\s*([^\.]+)\./i);
+  if (nomMatch) {
+    data.nombramientos = nomMatch[1].trim();
+  }
+  const datosMatch = text.match(/Datos registrales\.\s*(.+)$/i);
+  if (datosMatch) {
+    data.datos = datosMatch[1].trim();
+  }
+  return data;
+};
 
 const processPdfText = (text: string): string[] => {
   text = text.replace(/\s{3,}/g, '\n');
@@ -79,7 +126,11 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
           .map((line) => {
             const match = line.match(/^(\d+)\s*-\s*(.+)$/);
             if (match) {
-              return { id: match[1], text: match[2].trim() } as PdfEntry;
+              const textPart = match[2].trim();
+              const parsedData = parseConstitutionText(textPart);
+              if (parsedData) {
+                return { id: match[1], text: textPart, parsed: parsedData } as PdfEntry;
+              }
             }
             return null;
           })
@@ -108,10 +159,33 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
         <li key={e.id} className="pdf-entry">
           <details>
             <summary>
-              <strong>{e.id}</strong> - {e.text.slice(0, 50)}
-              {e.text.length > 50 ? '…' : ''}
+              <strong>{e.id}</strong> - {e.parsed?.nombre ?? e.text.slice(0, 50)}
+              {(!e.parsed && e.text.length > 50) ? '…' : ''}
             </summary>
-            <p>{e.text}</p>
+            {e.parsed ? (
+              <ul>
+                {e.parsed.comienzo && (
+                  <li><strong>Comienzo de operaciones:</strong> {e.parsed.comienzo}</li>
+                )}
+                {e.parsed.objeto && (
+                  <li><strong>Objeto social:</strong> {e.parsed.objeto}</li>
+                )}
+                {e.parsed.domicilio && (
+                  <li><strong>Domicilio:</strong> {e.parsed.domicilio}</li>
+                )}
+                {e.parsed.capital && (
+                  <li><strong>Capital:</strong> {e.parsed.capital}</li>
+                )}
+                {e.parsed.nombramientos && (
+                  <li><strong>Nombramientos:</strong> {e.parsed.nombramientos}</li>
+                )}
+                {e.parsed.datos && (
+                  <li><strong>Datos registrales:</strong> {e.parsed.datos}</li>
+                )}
+              </ul>
+            ) : (
+              <p>{e.text}</p>
+            )}
           </details>
         </li>
       ))}
