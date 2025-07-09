@@ -7,7 +7,7 @@ const xmlToJson = (xmlNode: Node): any => {
     const text = xmlNode.nodeValue?.trim();
     return text ? text : null;
   }
-  let obj: any = {};
+  const obj: any = {};
   if (xmlNode.nodeType === Node.ELEMENT_NODE) {
     const element = xmlNode as Element;
     if (element.attributes.length > 0) {
@@ -178,5 +178,4 @@ const Calendar: React.FC = () => {
     </div>
   );
 };
-
 export default Calendar;
