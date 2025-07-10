@@ -13,7 +13,7 @@ interface CompanyData {
   objeto?: string;
   domicilio?: string;
   capital?: string;
-  nombramientos?: string;
+  nombramientos?: Record<string, string[]>;
   datos?: string;
 }
 
@@ -22,6 +22,33 @@ interface PdfEntry {
   text: string;
   parsed?: CompanyData;
 }
+
+const reorderName = (name: string): string => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 2) {
+    return name.trim();
+  }
+  const firstNames = parts.slice(2).join(' ');
+  const lastNames = parts.slice(0, 2).join(' ');
+  return `${firstNames} ${lastNames}`.trim();
+};
+
+const parseNombramientos = (text: string): Record<string, string[]> => {
+  const result: Record<string, string[]> = {};
+  const regex = /(?:^|\.\s*)([^:]+?):\s*([^.;]+(?:;[^.;]+)*)/g;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    const role = match[1].trim();
+    const names = match[2]
+      .split(';')
+      .map((n) => reorderName(n.trim()))
+      .filter((n) => n.length > 0);
+    if (role) {
+      result[role] = names;
+    }
+  }
+  return result;
+};
 
 const parseConstitutionText = (text: string): CompanyData | null => {
   if (!text.includes('Constituci')) {
@@ -50,7 +77,7 @@ const parseConstitutionText = (text: string): CompanyData | null => {
   }
   const nomMatch = text.match(/Nombramientos[.]\s*(.+?)(?=\.\s*Datos registrales|$)/i);
   if (nomMatch) {
-    data.nombramientos = nomMatch[1].trim();
+    data.nombramientos = parseNombramientos(nomMatch[1].trim());
   }
   const datosMatch = text.match(/Datos registrales\.\s*(.+)$/i);
   if (datosMatch) {
@@ -177,7 +204,14 @@ const PdfTextExtractor: React.FC<PdfTextExtractorProps> = ({ pdfUrl }) => {
                   <li><strong>Capital:</strong> {e.parsed.capital}</li>
                 )}
                 {e.parsed.nombramientos && (
-                  <li><strong>Nombramientos:</strong> {e.parsed.nombramientos}</li>
+                  <li>
+                    <strong>Nombramientos:</strong>
+                    <ul>
+                      {Object.entries(e.parsed.nombramientos).map(([role, names]) => (
+                        <li key={role}><strong>{role}:</strong> {names.join('; ')}</li>
+                      ))}
+                    </ul>
+                  </li>
                 )}
                 {e.parsed.datos && (
                   <li><strong>Datos registrales:</strong> {e.parsed.datos}</li>
