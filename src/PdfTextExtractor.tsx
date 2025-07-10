@@ -40,7 +40,7 @@ const parseConstitutionText = (text: string): CompanyData | null => {
   if (objetoMatch) {
     data.objeto = objetoMatch[1].trim();
   }
-  const domicilioMatch = text.match(/Domicilio:\s*([^\.]+)\./i);
+  const domicilioMatch = text.match(/Domicilio:\s*([^.]+)\./i);
   if (domicilioMatch) {
     data.domicilio = domicilioMatch[1].trim();
   }
@@ -48,7 +48,7 @@ const parseConstitutionText = (text: string): CompanyData | null => {
   if (capitalMatch) {
     data.capital = capitalMatch[1].trim();
   }
-  const nomMatch = text.match(/Nombramientos\.\s*(.+?)(?=\.\s+[A-ZÁÉÍÓÚÑ]|$)/i);
+  const nomMatch = text.match(/Nombramientos[.]\s*(.+?)(?=\.\s*Datos registrales|$)/i);
   if (nomMatch) {
     data.nombramientos = nomMatch[1].trim();
   }
